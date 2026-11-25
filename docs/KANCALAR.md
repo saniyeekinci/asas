@@ -314,6 +314,9 @@ function oyunKamera() {
 | `altSinir: true \| satır` | Adın alt kenarı bu satırın altına inmez (`true` = `ALAN_ALT`, yorum alanının üstü) |
 | `disari: 'gizle'` | Bağlantı noktası ekran dışında kalanın adı ve balonu çizilmez (öntanım `'kenar'`: ekranın kenarına itilir, kalabalıkta kenarda yığılır) |
 | `balonSira: 'derinlik' \| 'oncelik'` | Konuşma balonlarının çizim sırası (sonra çizilen üstte): `derinlik` öndeki üstte, `oncelik` lider üstte. Öntanım ekleme sırası |
+| `balonZemin`, `balonYazi`, `balonCizgi` | Konuşma balonunun dolgu, yazı ve çizgi rengi (`#rrggbb`). Öntanım: vurgu zemin, mürekkep yazı ve çizgi |
+| `liderParilti: true` | Lider ad rozeti vuruşla akan altın-turuncu parıltı ve hafif dış ışık alır; taç da parlar |
+| `liderZemin` | `liderParilti` kapalıyken lider rozetinin düz dolgu rengi (öntanım `RENK.vurgu`) |
 
 Oyuncu başına (her karede `insanEkle`'den sonra yazılır; `insanEkle` bunları her karede sıfırlar):
 - `k.et.asagi = true` (ya da kalıcı `k.etAsagi = true`): ad başın üstüne değil `k.et.alt` noktasının (insanEkle'de

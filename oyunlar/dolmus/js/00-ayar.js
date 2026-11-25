@@ -1,14 +1,14 @@
 /* AYAR — Dolmuş oyununun bütün yazıları, hediye kademeleri, açılış kalabalığı ve sahte yorumları.
  * Derlemede HER ZAMAN İLK dosyadır; çekirdek OYUN'u buradan okur (docs/KANCALAR.md).
- * Oyun: üstü açık bir dolmuş yolda kameraya doğru gider. Yorum yazan dolmuşa biner: koltuklar dolunca ayakta
- * kalır. Beğeni gaza bastırır. En çok hediye atan direksiyona geçer, şoför olur. Hediyeler korna çaldırır,
- * "müsait bir yerde" dedirtip fren yaptırır, kaset taktırır, viraj aldırır; en büyüğünde dolmuş havalanır.
+ * Oyun: üstü açık bir pavyon dolmuşu yolda kameraya doğru gider. Yorum yazan dolmuşa biner: koltuklar dolunca ayakta
+ * kalır. Beğeni gaza bastırır. En çok hediye atan direksiyona geçer, şoför olur. Hediye kademeleri sahnede
+ * gösterilir; ortak katkı yeni durakları ve dolmuş süslerini açar, kilometreler geceyle gündüz arasında döner.
  */
 const OYUN = {
   id: 'dolmus',
   ad: 'Dolmuş',
   logo: ['Dolmuş', 'Hattı'],
-  nasil: { yorum: 'Yorum: dolmuşa bin', begeni: 'Beğeni: gaz', hediye: '' },
+  nasil: { yorum: 'Yorum: dolmuşa bin', begeni: 'Beğeni: gaz', hediye: 'Hediye: dolmuşu süsle' },
   yazi: {
     sira: 'Direksiyon sırası', gosterge: 'Gaz', bos: 'Dolmuş boş. İlk binen direksiyona geçer.',
     birim: 'yolcu', ses: 'Kaseti başlat', sahne: 'Dolmuş sahnesi', giris: 'dolmuşa biner', bosalt: 'Dolmuşu boşalt'
@@ -16,11 +16,14 @@ const OYUN = {
   kapasite: 20,
   // Büyükten küçüğe. tip, oyunHediye'nin hangi etkiyi başlatacağını seçer; etki paneldeki tabloda yazar.
   kademe: [
-    { min: 1000, ad: 'Dolmuş uçuyor', tip: 'ucus', etki: 'Dolmuş havalanır, gönderen kaputun üstünde el sallar' },
-    { min: 200, ad: 'Sert viraj', tip: 'viraj', etki: 'Dolmuş virajı sert alır, herkes yana savrulur' },
-    { min: 50, ad: 'Kaset tak', tip: 'kaset', etki: 'Kaset çalar, bütün dolmuş oynar' },
-    { min: 10, ad: 'Müsait bir yerde', tip: 'fren', etki: 'Dolmuş sert fren yapar, herkes öne savrulur' },
-    { min: 1, ad: 'Korna', tip: 'korna', etki: 'Dolmuş korna çalar, gönderen el sallar' }
+    { min: 1000, ad: 'Dolmuş uçuyor', tip: 'ucus', etki: 'Gönderenin kıyafeti parlar; dolmuş havalanır ve kaputta el sallar' },
+    { min: 200, ad: 'Sert viraj', tip: 'viraj', etki: 'Gönderenin kıyafeti değişir; dolmuş virajı alıp süslerini açar' },
+    { min: 50, ad: 'Kaset tak', tip: 'kaset', etki: 'Gönderenin kıyafeti renklenir; kaset çalar, dolmuş süslenir' },
+    { min: 10, ad: 'Müsait yer', tip: 'fren', etki: 'Dolmuş müsait bir yerde durur, yolcular öne doğru savrulur' },
+    { min: 5, ad: 'Ankara pavyon dolmuşu', tip: 'ankara', etki: 'Ankara havası başlar; pavyon ışıkları ve dans gösterisi açılır' },
+    { min: 4, ad: 'Karadeniz dolmuşu', tip: 'karadeniz', etki: 'Karadeniz havası başlar; kemençe gösterisi ve yeşil ışıklar açılır' },
+    { min: 2, ad: 'Renk değiştir', tip: 'renk', etki: 'Dolmuşun gövde rengi rastgele değişir' },
+    { min: 1, ad: 'Korna', tip: 'korna', etki: 'Gönderen el sallar, kıyafetine özel renk gelir ve korna çalar' }
   ],
   tohum: [['zeyno.47', 320], ['urfalı_bekir', 140], ['gülizar_teyze', 60], ['dj_mahmut', 25], ['elif_naz', 10], ['hasan.usta', 5], ['pınar_34', 0], ['köyün_delisi', 0], ['berfin_gül', 0], ['muhtar_emmi', 0], ['sude_nur', 0]],
   sahteAd: ['şoför_nevzat', 'muavin_cemil', 'zeyno.47', 'urfalı_bekir', 'gülizar_teyze', 'mert.can.21', 'elif_naz', 'dj_mahmut', 'karadenizli.cemo', 'sibel_abla', 'ozan_dayı', 'mardinli_rojin', 'tuğçe.sk', 'hasan.usta', 'pınar_34', 'köyün_delisi', 'berfin_gül', 'yusuf.63', 'nazlı_can', 'durakta_bekleyen', 'şahin_k', 'melo.27', 'arka_koltuk', 'fatoş_01', 'efe_tr', 'cano_23', 'zilan.d', 'hüso_baba', 'ayten_hanım', 'kemo_44', 'deniz.yıldızı', 'rıza_amca', 'baran.21', 'ipek_böceği', 'muhtar_emmi', 'selo_02', 'songül.k', 'laz_ziya', 'egeli_duru', 'bozkır_ali', 'nur.sena'],
@@ -29,11 +32,17 @@ const OYUN = {
   renk: { zemin: '#1c1f2e', zemin2: '#2a2f45', zemin3: '#3e4664', cizgi: '#566082', vurgu: '#ffd166', sicak: '#ef5a3c', serin: '#2fc4b2', soluk: '#c9cede' },
   // Yüksekten bakan kamera: sıralar ekranda açılır, arka sıranın yüzleri öndekilerin adlarının üstünde kalır.
   kamera: { egim: 0.72, enYakin: 3, ustPay: 1.05, altPay: 0.2 },
-  etiket: { ustSinir: true, altSinir: true, disari: 'gizle', balonSira: 'derinlik' },
+  // Konuşma balonları açık serin ton; şoför rozeti altın parıltı — aynı sarı vurgudan ayrılır.
+  etiket: {
+    ustSinir: true, altSinir: true, disari: 'gizle', balonSira: 'derinlik',
+    balonZemin: '#e8f7f4', balonYazi: '#1c1f2e', balonCizgi: '#2fc4b2', liderParilti: true
+  },
   sahneYazi: { pankart: 'alt' },
-  // Müzik: dolmuş kaseti gibi düğün takımı (darbuka, def zili, klarnet, alttan bas); konvoyun havaları değil, bu
-  // oyunun iki özgün havası. Yazım docs/MUZIK.md. Tempo dolmuşun sallantısıdır.
-  // Sahnede jeton sayısı yok (TikTok yayın kuralları): sıra kutusunda yalnız adlar, bildirimde etkinin adı.
+  // Müzik: dolmuş kaseti gibi düğün takımı (darbuka, def zili, klarnet, alttan bas); havalar bu oyun için özgündür.
+  // Ankara ve Karadeniz hediyeleri kendi dosyaları varsa onları, yoksa oyunun havasını çalar.
+  // Dosyalar: Ankara Pavyon.mp3 → ankara-pavyon, Karadeniz.mp3 → karadeniz. Hazırlama: araclar/muzik-hazirla.py.
+  // Yazım docs/MUZIK.md.
+  // Sahnede kişilerin jeton toplamı gösterilmez; herkesin görebileceği hediye kademeleri ayrıca çizilir.
   sahneJeton: false,
   muzik: {
     takim: 'dugun',
@@ -61,6 +70,30 @@ const OYUN = {
           D: '-:6 -:6 -:6 -:6'
         },
         eslik: { A: '0:12 3:12 0:12 0:12', B: '3:12 4:12 3:6 4:6 0:12' },
+        form: 'AABBD' },
+      { id: 'ankara-pavyon', ad: 'Ankara Pavyon Havası', bpm: 116, spb: 3, bar: 6, tonik: 311.1,
+        dizi: [0, 100, 300, 500, 700, 800, 1000],
+        davul: { ana: 'D.kT.k', cesni: 'DkrTkr', gecis: 'DkTrkr' },
+        ust: { ana: 'z..z..', cesni: 'z.z.z.', gecis: 'z.zzzz' },
+        bas: { ana: '1..5..', cesni: '1.3.5.', gecis: '1.5.8.' },
+        bolum: {
+          A: '0:1 2:1 3:1 4:1 5:2 | 4:1 3:1 2:1 3:1 4:1 5:1',
+          B: '4:1 5:1 7:1 8:1 7:2 | 5:1 4:1 3:1 4:1 3:1 0:1',
+          D: '-:6 -:6'
+        },
+        eslik: { A: '0:6 3:6', B: '4:6 0:6' },
+        form: 'AABBD' },
+      { id: 'karadeniz-yol', ad: 'Karadeniz Yol Havası', bpm: 124, spb: 3, bar: 6, tonik: 392,
+        dizi: [0, 200, 300, 500, 700, 900, 1000],
+        davul: { ana: 'D.kT.k', cesni: 'DkrTkr', gecis: 'DkTrkr' },
+        ust: { ana: 'z..z..', cesni: 'z.z.z.', gecis: 'z.zzzz' },
+        bas: { ana: '1..5..', cesni: '1.3.5.', gecis: '1.5.8.' },
+        bolum: {
+          A: '0:1 2:1 4:1 5:2 4:1 | 2:1 3:1 5:1 7:2 5:1 | 4:1 2:1 3:1 4:1 2:2 | 0~:6',
+          B: '7:1 8:1 7:1 5:2 4:1 | 5:1 7:1 8:1 10:2 8:1 | 7:1 5:1 4:1 2:1 3:2 | 0~:6',
+          D: '-:6 -:6 -:6 -:6'
+        },
+        eslik: { A: '0:6 3:6 0:6 4:6', B: '0:6 4:6 3:6 0:6' },
         form: 'AABBD' }
     ]
   }

@@ -25,12 +25,16 @@ const Yayin = {
     }
     if (m.tip)
       return m; // oyunun kendi biçimi
-    const e = String(m.event || m.type || '').toLowerCase(), d = m.data && typeof m.data === 'object' ? m.data : m, u = d.user && typeof d.user === 'object' ? d.user : d;
-    const kullanici = { id: u.uniqueId || u.userId || u.id || u.nickname, ad: u.nickname || u.uniqueId || u.displayName };
+    const e = String(m.event || m.type || '').toLowerCase(), d = m.data && typeof m.data === 'object' ? m.data : m,
+      ic = d.user && typeof d.user === 'object' ? d.user : null,
+      u = ic && ic.user && typeof ic.user === 'object' ? ic.user :
+        ic || (d.userInfo && typeof d.userInfo === 'object' ? d.userInfo : d);
+    const kullanici = { id: u.uniqueId || u.displayId || u.userId || u.id || u.nickname || d.uniqueId || d.displayId || d.userId || d.id || d.nickname,
+      ad: u.nickname || u.uniqueId || u.displayName || d.nickname || d.uniqueId || d.displayName };
     if (!kullanici.id)
       return null;
     if (e === 'chat' || e === 'comment')
-      return { tip: 'yorum', kullanici, metin: d.comment || d.message || d.text || '' };
+      return { tip: 'yorum', kullanici, metin: d.comment ?? d.commentText ?? d.message ?? d.text ?? d.content ?? '' };
     if (e === 'like')
       return { tip: 'begeni', kullanici, adet: d.likeCount || d.count || 1 };
     if (e === 'follow')

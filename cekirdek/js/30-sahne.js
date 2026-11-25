@@ -241,12 +241,18 @@ function golge(x, z, rx, rz) {
 //   et.asagi (ya da kalıcı k.etAsagi): ad başın üstüne değil, et.alt (yoksa et.y) noktasının altına asılır
 //   et.alt: alt bağlantı noktası (insanEkle çeneyi yazar) · et.bx / et.by: konuşma balonunun ucunun yeri
 // ekler: izleyici olmayan, etiketi olacak oyuncular (oyunEkAdlar()); k.ozel olanlar vurgu rengiyle yazılır.
-// OYUN.etiket = { ustSinir, altSinir, disari, balonSira } (hepsi isteğe bağlı; yoksa eski davranış):
+// OYUN.etiket = { ustSinir, altSinir, disari, balonSira, balonZemin, balonYazi, balonCizgi, liderParilti, liderZemin }
+// (hepsi isteğe bağlı; yoksa eski davranış):
 //   ustSinir: adın üst kenarı bu satırın üstüne çıkmaz (true = ALAN_UST, sıralama kutusunun altı)
 //   altSinir: adın alt kenarı bu satırın altına inmez (true = ALAN_ALT, yorum alanının üstü)
 //   disari: 'gizle' → bağlantı noktası ekran dışında kalanın adı (ve balonu) çizilmez; öntanım 'kenar' (kenara itilir)
 //   balonSira: 'ekleme' (öntanım) · 'derinlik' (uzaktaki önce, öndeki üstte) · 'oncelik' (lider en üstte)
-const ETIKET = Object.assign({ ustSinir: null, altSinir: null, disari: 'kenar', balonSira: 'ekleme' }, OYUN.etiket || {});
+//   balonZemin / balonYazi / balonCizgi: konuşma balonu dolgu, yazı ve çizgi (öntanım vurgu / mürekkep)
+//   liderParilti: lider rozetinde vuruşla akan parıltı; liderZemin: parıltı kapalıyken rozet rengi (öntanım vurgu)
+const ETIKET = Object.assign({
+  ustSinir: null, altSinir: null, disari: 'kenar', balonSira: 'ekleme',
+  balonZemin: null, balonYazi: null, balonCizgi: null, liderParilti: false, liderZemin: null
+}, OYUN.etiket || {});
 for (const [ad, sinir] of [['ustSinir', ALAN_UST], ['altSinir', ALAN_ALT]])
   ETIKET[ad] = ETIKET[ad] === true ? sinir : Number.isFinite(ETIKET[ad]) ? ETIKET[ad] : null;
 function etiketCiz(ekler) {
@@ -312,17 +318,38 @@ function etiketCiz(ekler) {
     k.etY = y - yk;
     kutular.push([x - w / 2, y - yk, w, yk]);
     k.etKutu = kutular[kutular.length - 1];
-    c.fillStyle = bas ? RENK.vurgu : renkSaydam(MUREKKEP, 0.78);
     c.beginPath();
     c.roundRect(x - w / 2, y - yk, w, yk, yk / 2);
-    c.fill();
+    if (bas && ETIKET.liderParilti) {
+      const rx = x - w / 2, uy = y - yk;
+      const t = B * TAU + zaman * 2.2;
+      const kayma = (Math.sin(t * 1.3) + 1) * 0.5;
+      const nabiz = 0.72 + 0.28 * Math.sin(t * 2.7);
+      c.save();
+      c.shadowColor = renkKat(RENK.sicak, RENK.vurgu, kayma);
+      c.shadowBlur = 6 + nabiz * 14;
+      const g = c.createLinearGradient(rx, uy, rx + w, uy + yk);
+      g.addColorStop(0, renkKat(RENK.vurgu, '#fff6d8', kayma * 0.55));
+      g.addColorStop(0.38 + kayma * 0.22, renkKat('#fff1a8', RENK.vurgu, 0.4));
+      g.addColorStop(0.58 + kayma * 0.12, renkKat(RENK.sicak, RENK.vurgu, nabiz * 0.6));
+      g.addColorStop(1, renkKat(RENK.vurgu, RENK.sicak, 1 - kayma));
+      c.fillStyle = g;
+      c.fill();
+      c.restore();
+    }
+    else {
+      c.fillStyle = bas ? (ETIKET.liderZemin || RENK.vurgu) : renkSaydam(MUREKKEP, 0.78);
+      c.fill();
+    }
     if (bas) {
-      c.lineWidth = 2.5;
-      c.strokeStyle = MUREKKEP;
+      const t = B * TAU + zaman * 2.2;
+      const nabiz = ETIKET.liderParilti ? 0.72 + 0.28 * Math.sin(t * 2.7) : 0;
+      c.lineWidth = ETIKET.liderParilti ? 3 : 2.5;
+      c.strokeStyle = ETIKET.liderParilti ? renkKat(MUREKKEP, RENK.sicak, nabiz * 0.45) : MUREKKEP;
       c.stroke();
       // taç: liderin işareti
       const tx = x - w / 2 + punto * 0.5, ty = y - yk / 2, b = punto * 0.42;
-      c.fillStyle = RENK.sicak;
+      c.fillStyle = ETIKET.liderParilti ? renkKat(RENK.sicak, '#fff4c4', nabiz * 0.5) : RENK.sicak;
       c.beginPath();
       c.moveTo(tx, ty + b * 0.7);
       c.lineTo(tx - b * 0.15, ty - b * 0.6);
@@ -365,8 +392,8 @@ function etiketCiz(ekler) {
     c.font = '700 21px Rubik, system-ui, sans-serif';
     const w = Math.min(330, c.measureText(k.balon.m).width + 28), x = clamp(bx, w / 2 + 8, GW - w / 2 - 8);
     c.globalAlpha = al;
-    c.fillStyle = RENK.vurgu;
-    c.strokeStyle = MUREKKEP;
+    c.fillStyle = ETIKET.balonZemin || RENK.vurgu;
+    c.strokeStyle = ETIKET.balonCizgi || MUREKKEP;
     c.lineWidth = 2.5;
     c.beginPath();
     c.roundRect(x - w / 2, by - 36, w, 36, 14);
@@ -380,7 +407,7 @@ function etiketCiz(ekler) {
       c.stroke();
       c.fill();
     }
-    c.fillStyle = MUREKKEP;
+    c.fillStyle = ETIKET.balonYazi || MUREKKEP;
     c.fillText(k.balon.m, x, by - 17, w - 18);
     c.globalAlpha = 1;
   }

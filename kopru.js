@@ -1039,14 +1039,17 @@ function zatenAcik() {
 /* ------------------------------------------------------------------ TikTok olaylarını oyunun biçimine çevir */
 const sayi = v => { const n = typeof v === 'bigint' ? Number(v) : +v; return Number.isFinite(n) ? n : 0; };
 function kullanici(d) {
-  const u = d && typeof d.user === 'object' && d.user ? d.user : (d || {});
-  const id = u.uniqueId || u.displayId || d.uniqueId || u.userId || d.userId || u.nickname || d.nickname;
+  d = d || {};
+  const ic = d.user && typeof d.user === 'object' ? d.user : null;
+  const u = ic && ic.user && typeof ic.user === 'object' ? ic.user :
+    ic || (d.userInfo && typeof d.userInfo === 'object' ? d.userInfo : d);
+  const id = u.uniqueId || u.displayId || d.uniqueId || d.displayId || u.userId || d.userId || u.id || d.id || u.nickname || d.nickname;
   if (id === undefined || id === null || id === '') return null;
   return { id: String(id), ad: String(u.nickname || d.nickname || u.uniqueId || d.uniqueId || id) };
 }
 function cevir(tur, d) {
   d = d || {}; const k = kullanici(d); if (!k) return null;
-  if (tur === 'chat') return { tip: 'yorum', kullanici: k, metin: String(d.comment ?? d.content ?? '') };
+  if (tur === 'chat') return { tip: 'yorum', kullanici: k, metin: String(d.comment ?? d.commentText ?? d.message ?? d.text ?? d.content ?? '') };
   if (tur === 'like') return { tip: 'begeni', kullanici: k, adet: sayi(d.likeCount ?? d.count) || 1 };
   if (tur === 'follow') return { tip: 'takip', kullanici: k };
   if (tur === 'share') return { tip: 'paylasim', kullanici: k };

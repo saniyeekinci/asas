@@ -40,6 +40,11 @@ Hangi oyun ne çalıyor:
 | `halat-cekme` | `davul-zurna` | Çekiş Havası, Meydan Şenliği (kendi havaları) | 96, 116 |
 | `dolmus` | `dugun` | Durak Havası (kürdi), Son Durak (uşşak, 6/8) | 108, 92 |
 
+Dolmuş oyununda kendi kayıtlarını kullanmak için kaynak dosyaları `Ankara Pavyon.mp3` ve `Karadeniz.mp3` adlarıyla
+bir klasöre koyup `python araclar/muzik-hazirla.py "<klasör>" dolmus` çalıştır. Desteklenen ses uzantıları ve
+ölçüm ayrıntıları için aşağıdaki hazır parça bölümüne bak. Ankara ve Karadeniz hediyeleri eşleşen kaydı seçer;
+dosya yoksa oyunun özgün sentez havası çalar.
+
 ## Takımlar
 
 | Takım | Ne çalar | Davul satırı harfleri | Ek satırlar |
@@ -214,6 +219,12 @@ Dikkat edilecekler:
 ## YouTube'dan şarkı (yayıncı için)
 
 Oyunun kendi müziği yerine kendi seçtiğin bir şarkıyı YouTube'dan çalabilirsin. Her oyunda aynı çalışır.
+
+Dolmuşta ayrıca Ankara Pavyon ve Karadeniz için iki ayrı bağlantı alanı bulunur. Bu alanlar genel YouTube
+bağlantı alanından bağımsızdır. Her bağlantının **Çal** düğmesine basmak o bağlantıyı açar ve ilgili hediye
+geldiğinde aynı bağlantının yeniden çalınmasına izin verir. Bağlantı düzenlenince izin kaldırılır; yeni bağlantı
+için **Çal**'a yeniden basmak gerekir. Ankara ve Karadeniz, sırayla çalan oyun havalarına dahil değildir.
+Hediye YouTube'u kendiliğinden başlatmaz; önce yayıncının ilgili bağlantıyı açıkça başlatmış olması gerekir.
 
 1. Oyunu BASLAT ile aç (diskten çift tıklanarak açılan oyunda YouTube çalmaz: "YouTube müziği yalnız BASLAT ile
    açılan oyunda çalışır." yazar).

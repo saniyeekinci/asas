@@ -8,12 +8,17 @@ function otoIlerle() {
   const dB = Math.max(0, B - D._B);
   D._B = B;
   const fren = B - D.fren, kaset = B < D.kaset + 16;
-  let hedef = 1.3 + 2.2 * D.cosku + (kaset ? 0.5 : 0) + (D.ucus ? 2 : 0);
+  const eskiKm = Math.floor(Math.max(0, D.yol) / 1000);
+  const durakSovu = B < D.durakSovBit;
+  let hedef = 1.3 + 2.2 * D.cosku + (kaset ? 0.5 : 0) + (D.ucus ? 2 : 0) + (durakSovu ? 0.65 : 0);
   if (fren >= 0 && fren < 4)
     hedef = fren < 2.5 ? 0 : hedef * 0.5;
   // fren ani, gaz yumuşak
   D.hiz += (hedef - D.hiz) * Math.min(1, dB * (hedef < D.hiz && fren >= 0 && fren < 1 ? 3 : 0.8));
   D.yol += D.hiz * dB;
+  const yeniKm = Math.floor(Math.max(0, D.yol) / 1000);
+  if (eskiKm !== yeniKm && eskiKm % 2 !== yeniKm % 2)
+    pankart(dolmusGece() ? 'Gece seferi başladı' : 'Gün doğdu, sefer sürüyor', 'Dolmuş ' + yeniKm + '. kilometrede');
   // viraj: dolmuş 8 vuruşta bir yana kıvrılıp döner
   let yaw = 0, kay = 0;
   if (D.viraj) {
@@ -46,9 +51,29 @@ function otoIlerle() {
 
 function oyunGuncelle(dt) {
   otoIlerle();
+  if (D.dansci) {
+    D.dansci.kalan -= dt;
+    if (D.dansci.kalan <= 0 || D.dansci.k.cikiyor || !D.oy.has(D.dansci.k.id))
+      D.dansci = null;
+  }
+  D.pavyonIsikKalan = Math.max(0, D.pavyonIsikKalan - dt);
+  if (D.tema && B >= D.tema.b0 + 16) {
+    if (D.tema.hava && muzik.bekleyen === D.tema.hava)
+      muzik.bekleyen = null;
+    if (D.tema.hava && muzik.hava === D.tema.hava)
+      muzik.bekleyen = D.tema.donusHava;
+    D.tema = null;
+  }
   muzik.sov = B < D.kaset + 16;
-  for (const k of D.oy.values())
+  for (const k of D.oy.values()) {
+    if (k.girisYorum) {
+      k.yx = k.hx;
+      k.yz = k.hz;
+      k.yer = 1;
+      k.girisYorum = false;
+    }
     yolcuHareket(k, dt);
+  }
 }
 
 function yolcuHareket(k, dt) {
@@ -60,18 +85,20 @@ function yolcuHareket(k, dt) {
   k.g.baslik = sofor ? 'kasket' : k.g0.baslik;
   k.g.baslikRenk = sofor ? '#23263a' : k.g0.baslikRenk;
   const ucan = D.ucus && D.ucus.k === k && B - D.ucus.b0 < UCUS_SURE - 1;
+  const dansci = D.dansci && D.dansci.k === k;
+  const gosteride = ucan || dansci;
   // hedef (yerel): çıkan kapıdan dışarı, uçuşta kaputun üstü, yoksa kendi yeri
-  const hx = k.cikiyor ? KAPI[0] + 1.2 : ucan ? 0 : k.hx, hz = k.cikiyor ? KAPI[1] : ucan ? -0.4 : k.hz;
+  const hx = k.cikiyor ? KAPI[0] + 1.2 : gosteride ? 0 : k.hx, hz = k.cikiyor ? KAPI[1] : gosteride ? -0.4 : k.hz;
   // dolmuşun içinde yürüyen önce koridora (x = 0,32) geçer, sonra yerine: koltukların içinden geçmesin
   const iceride = k.yx < 1.02 && k.yx > -1.02;
   let ax = hx, az = hz;
-  if (!ucan && Math.abs(k.yz - hz) > 0.15 && Math.abs(k.yx - 0.32) > 0.12 && iceride)
+  if (!gosteride && Math.abs(k.yz - hz) > 0.15 && Math.abs(k.yx - 0.32) > 0.12 && iceride)
     ax = 0.32, az = k.yz;
-  else if (!ucan && Math.abs(k.yz - hz) > 0.15 && !iceride)
+  else if (!gosteride && Math.abs(k.yz - hz) > 0.15 && !iceride)
     ax = 0.32, az = KAPI[1];
   const dx = ax - k.yx, dz = az - k.yz, uz = Math.hypot(dx, dz), kalan = Math.hypot(hx - k.yx, hz - k.yz);
   if (uz > 0.002) {
-    const adim = Math.min(uz, (ucan ? 4 : 2.2) * dt);
+    const adim = Math.min(uz, (gosteride ? 4 : 2.2) * dt);
     k.yx += dx / uz * adim;
     k.yz += dz / uz * adim;
     k.kos = (k.kos || 0) + dt;
@@ -83,12 +110,12 @@ function yolcuHareket(k, dt) {
   k.x = w[0];
   k.z = w[2];
   const ic = k.yx < 1.02 && k.yx > -1.02 && k.yz > -0.1;
-  k.y0 = ucan && k.yz < 0 ? OTO.y + 0.72 : ic ? OTO.y + TABAN : 0;
+  k.y0 = gosteride && k.yz < 0 ? OTO.y + 0.72 : ic ? OTO.y + TABAN : 0;
   // gövde kameraya (dolmuşun önüne) bakar; yürürken gittiği yöne
   const on = Math.PI + D.yaw, bak = kalan > 0.08 && uz > 0.01 ? Math.atan2(dx, -dz) + on - Math.PI : on;
   k.yon += aciFark(k.yon, bak) * Math.min(1, dt * 8);
   k.basYon = undefined;
-  yolcuPoz(k, ucan, kalan);
+  yolcuPoz(k, ucan, dansci, kalan);
 }
 
 // Ortak savrulma: frende öne, virajda yana; kaset çalarken herkes vuruşla sallanır.
@@ -103,16 +130,33 @@ function savrulma() {
   return { on, yan };
 }
 
-function yolcuPoz(k, ucan, kalan) {
+function yolcuPoz(k, ucan, dansci, kalan) {
   const s = savrulma(), kaset = B < D.kaset + 16, selam = B >= k.selam && B < k.selam + 4;
   k.kolBoy = 1;
   k.elSekil = null;
-  if (ucan || kalan > 0.08 || k.yerTur === 'ayakta' || k.cikiyor) {
+  if (ucan || dansci || kalan > 0.08 || k.yerTur === 'ayakta' || k.cikiyor) {
     const poz = pozBekle(k), adim = kalan > 0.08 ? Math.sin(k.kos * 10) * 0.12 : 0;
     poz.aS[1] = adim;
     poz.aL[1] = -adim;
     poz.egim += s.on * 0.16;
     poz.yat += s.yan * 0.06 + (kaset ? Math.sin(TAU * B / 2) * 0.03 : 0);
+    if (dansci) {
+      if (azHareket) {
+        poz.hipX += 0.03;
+        poz.yat += 0.04;
+      }
+      else {
+        const r1 = Math.sin(TAU * B), r2 = Math.sin(TAU * B / 2);
+        poz.hipX += r2 * 0.055;
+        poz.hipY += 0.025 * Math.abs(r1);
+        poz.yat += r2 * 0.085;
+        poz.egim += -0.02 + 0.02 * r1;
+        poz.omL += r1 * 0.015;
+        poz.omR -= r1 * 0.015;
+        poz.aS[2] = Math.max(0, r2) * 0.045;
+        poz.aL[2] = Math.max(0, -r2) * 0.045;
+      }
+    }
     if (ucan) {
       const z = 0.12 * Math.abs(Math.sin(Math.PI * B));
       poz.hipY += z;
@@ -123,6 +167,18 @@ function yolcuPoz(k, ucan, kalan) {
     if (ucan) {
       k.j.haR = W(-0.24, poz.hipY + 0.66, 0.05 + Math.sin(TAU * B) * 0.06);
       k.j.haL = W(0.24, poz.hipY + 0.66, 0.05 - Math.sin(TAU * B) * 0.06);
+      k.elSekil = { R: 'avuc', L: 'avuc' };
+    }
+    else if (dansci) {
+      if (azHareket) {
+        k.j.haR = W(-0.22, poz.hipY + 0.7, 0.07);
+        k.j.haL = W(0.31, poz.hipY + 0.36, 0.06);
+      }
+      else {
+        const u = 0.5 + 0.5 * Math.sin(TAU * B / 2), dalga = Math.sin(TAU * B) * 0.05;
+        k.j.haR = W(lerp(-0.32, -0.2, u), poz.hipY + lerp(0.34, 0.72, u) + dalga, 0.07);
+        k.j.haL = W(lerp(0.2, 0.32, u), poz.hipY + lerp(0.72, 0.34, u) - dalga, 0.07);
+      }
       k.elSekil = { R: 'avuc', L: 'avuc' };
     }
     else if (k.yerTur === 'ayakta' && kalan <= 0.08 && !k.cikiyor) {
@@ -176,7 +232,9 @@ function yolcuPoz(k, ucan, kalan) {
   kolKur(k);
 }
 
-// Kadraj: dolmuşun kendisi (kaput ve arka tampon dahil); kalabalık değişse de dolmuş aynı büyüklükte kalır.
+// Kadraj: yolcu geldikçe uzayan dolmuşun kaput ve arka tamponu da kadraja girer.
 function oyunKamera() {
-  return { noktalar: [[-1.25, -0.75, 0.3], [1.25, -0.75, 0.3], [-1.25, 4.3, 0.3], [1.25, 4.3, 0.3]], x: 0, ustPx: 36 };
+  const on = otoZ(-0.75);
+  const arka = otoZ(4.3);
+  return { noktalar: [[-1.25, on, 0.3], [1.25, on, 0.3], [-1.25, arka, 0.3], [1.25, arka, 0.3]], x: 0, ustPx: 36 };
 }

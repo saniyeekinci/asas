@@ -54,6 +54,9 @@ function baslat(klasor, args) { if (args.includes('--ana-sayfa') && !args.includ
   const v2u = { user: { uniqueId: 'memo', nickname: 'Memo', userId: 6813181309701718022n } };
   const c2 = cevir('chat', { ...v2u, comment: 'selam' });
   kontrol('Köprü: yeni sürüm iç içe kullanıcı, büyük sayılı kimlik', c2.kullanici.id === 'memo' && c2.metin === 'selam' && JSON.stringify(c2).length > 0, c2);
+  const v3u = { user: { user: { uniqueId: 'can', nickname: 'Can' } } };
+  const c3 = cevir('chat', { ...v3u, comment: 'herkes binebilir' });
+  kontrol('Köprü: daha derin iç içe kullanıcıyla her yorum kullanıcıya atanır', c3 && c3.kullanici.id === 'can' && c3.kullanici.ad === 'Can' && c3.metin === 'herkes binebilir', c3);
   kontrol('Köprü: yeni sürüm seri (sayı olarak 0/1)', cevir('gift', { ...v2u, giftDetails: { giftType: 1, diamondCount: 10 }, repeatCount: 4, repeatEnd: 0 }) === null && cevir('gift', { ...v2u, giftDetails: { giftType: 1, diamondCount: 10 }, repeatCount: 4, repeatEnd: 1 }).jeton === 10);
   kontrol('Köprü: beğeni sayısı ve büyük sayı', cevir('like', { ...v1, likeCount: 15 }).adet === 15 && cevir('like', { ...v2u, likeCount: 15n }).adet === 15);
   kontrol('Köprü: kimliksiz ya da bozuk veri yok sayılır', cevir('chat', {}) === null && cevir('gift', null) === null && cevir('bilinmeyen', v1) === null);
